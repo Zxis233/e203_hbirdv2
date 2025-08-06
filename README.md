@@ -65,6 +65,14 @@ HummingBird SDK
 
 Click https://github.com/riscv-mcu/hbird-sdk for software development kit.
 
+WeChat Group
+------------
+
+If you would like to join our WeChat group for discussion and support,
+please scan the following QR code:
+
+![wechat QR code](./pics/QR_code.png)
+
 Release History
 ---------------
 
