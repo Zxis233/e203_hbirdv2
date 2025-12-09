@@ -30,6 +30,11 @@ limitations under the License.
 
 module tb_dma();
 
+  // Memory model parameters
+  localparam MEM_SIZE = 1024;       // Memory size in words
+  localparam MEM_ADDR_WIDTH = 10;   // log2(MEM_SIZE)
+  localparam WORD_SIZE = 4;         // Bytes per word (32-bit)
+
   // Clock and reset
   reg clk;
   reg rst_n;
@@ -77,7 +82,7 @@ module tb_dma();
   assign cfg_icb_rsp_ready = cfg_rsp_ready_r;
 
   // Simple memory model
-  reg [31:0] memory [0:1023];
+  reg [31:0] memory [0:MEM_SIZE-1];
   reg        mem_rsp_valid_r;
   reg [31:0] mem_rsp_rdata_r;
   
@@ -96,12 +101,12 @@ module tb_dma();
       
       if (mem_icb_cmd_valid && mem_icb_cmd_ready) begin
         if (mem_icb_cmd_read) begin
-          // Read operation
-          mem_rsp_rdata_r <= memory[mem_icb_cmd_addr[11:2]];
+          // Read operation: Use parameterized address width
+          mem_rsp_rdata_r <= memory[mem_icb_cmd_addr[MEM_ADDR_WIDTH+1:2]];
           mem_rsp_valid_r <= 1'b1;
         end else begin
-          // Write operation
-          memory[mem_icb_cmd_addr[11:2]] <= mem_icb_cmd_wdata;
+          // Write operation: Use parameterized address width
+          memory[mem_icb_cmd_addr[MEM_ADDR_WIDTH+1:2]] <= mem_icb_cmd_wdata;
           mem_rsp_valid_r <= 1'b1;
         end
       end

@@ -63,7 +63,7 @@ module sirv_dma #(
   output               dma_irq
 );
 
-  // Register offsets
+  // Register offsets (5-bit address space: 32 bytes total)
   localparam REG_CTRL   = 5'h00;  // 0x00
   localparam REG_STATUS = 5'h04;  // 0x04
   localparam REG_SRC    = 5'h08;  // 0x08
@@ -280,6 +280,7 @@ module sirv_dma #(
             if (mem_icb_rsp_err) begin
               state <= STATE_DONE;
             end else begin
+              // Increment by word size (assumes word-aligned transfers)
               current_src <= current_src + (DW/8);
               current_dst <= current_dst + (DW/8);
               remaining_len <= remaining_len - (DW/8);
