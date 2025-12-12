@@ -380,7 +380,7 @@ module tb_conv2d();
     //   0  0  0
     // Packed: [w2:w1:w0] where w1 is center for row 1
     conv_write(32'h20, 32'h00000000);  // KER row 0: 0, 0, 0
-    conv_write(32'h24, 32'h00000100);  // KER row 1: 0, 1, 0 (center weight at byte[1])
+    conv_write(32'h24, 32'h00000100);  // KER row 1: 0, 1, 0 (w4=1 at bits[15:8])
     conv_write(32'h28, 32'h00000000);  // KER row 2: 0, 0, 0
     
     // Start convolution

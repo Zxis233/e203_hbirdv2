@@ -153,7 +153,7 @@ do {
 ```
  1  2  1   -> 0x00010201
  0  0  0   -> 0x00000000
--1 -2 -1   -> 0x00FF_FE_FF (or 0x00FFFEFF)
+-1 -2 -1   -> 0x00FFFEFF
 ```
 
 ### Laplacian (Edge Detection)
