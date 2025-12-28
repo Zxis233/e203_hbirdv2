@@ -173,9 +173,42 @@ module e203_exu_disp(
   //             Note: if it is 3 pipeline stages, then we also need to consider the non-ALU-to-ALU 
   //                   RAW dependency.
 
+  // ==================================================================================
+  // ALU-to-ALU RAW dependency detection (added for pipeline stalling observation)
+  // This tracks the previous dispatched ALU instruction's destination register
+  // and blocks the current instruction if its source registers depend on it.
+  // ==================================================================================
+  
+  // Register to store the previous instruction's destination register index and write-enable
+  reg [`E203_RFIDX_WIDTH-1:0] prev_rdidx_r;
+  reg prev_rdwen_r;
+  
+  // Update previous instruction's rd info when current instruction is dispatched
+  wire disp_fire = disp_i_valid & disp_i_ready;
+  
+  always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+      prev_rdidx_r <= {`E203_RFIDX_WIDTH{1'b0}};
+      prev_rdwen_r <= 1'b0;
+    end
+    else if (disp_fire) begin
+      prev_rdidx_r <= disp_i_rdidx;
+      prev_rdwen_r <= disp_i_rdwen;
+    end
+  end
+  
+  // Check ALU-to-ALU RAW dependency
+  // If the current instruction's source register matches the previous instruction's destination register
+  wire alu_raw_dep_rs1 = prev_rdwen_r & disp_i_rs1en & (prev_rdidx_r == disp_i_rs1idx) & (|disp_i_rs1idx);
+  wire alu_raw_dep_rs2 = prev_rdwen_r & disp_i_rs2en & (prev_rdidx_r == disp_i_rs2idx) & (|disp_i_rs2idx);
+  wire alu_raw_dep = alu_raw_dep_rs1 | alu_raw_dep_rs2;
+  
+  // ==================================================================================
+
   wire raw_dep =  ((oitfrd_match_disprs1) |
                    (oitfrd_match_disprs2) |
-                   (oitfrd_match_disprs3)); 
+                   (oitfrd_match_disprs3) |
+                   (alu_raw_dep));  // Added ALU-to-ALU RAW dependency
                // Only check the longp instructions (non-ALU) for WAW, here if we 
                //   use the precise version (disp_alu_longp_real), it will hurt timing very much, but
                //   if we use imprecise version of disp_alu_longp_prdt, it is kind of tricky and in 
