@@ -175,8 +175,14 @@ module e203_exu_disp(
 
   // ==================================================================================
   // ALU-to-ALU RAW dependency detection (added for pipeline stalling observation)
-  // This tracks the previous dispatched ALU instruction's destination register
+  // This tracks the previous dispatched instruction's destination register
   // and blocks the current instruction if its source registers depend on it.
+  // 
+  // NOTE: This is an intentional modification to observe pipeline cycle changes.
+  // In the original 2-stage design, ALU-to-ALU RAW hazards don't exist because
+  // ALU write-back completes in the same cycle. This modification artificially
+  // introduces blocking on ALL data dependencies (not just ALU-to-ALU) to
+  // demonstrate the effect of data hazards on pipeline performance.
   // ==================================================================================
   
   // Register to store the previous instruction's destination register index and write-enable
@@ -184,6 +190,7 @@ module e203_exu_disp(
   reg prev_rdwen_r;
   
   // Update previous instruction's rd info when current instruction is dispatched
+  // Intentionally tracks all instructions (not just ALU) to maximize stall observation
   wire disp_fire = disp_i_valid & disp_i_ready;
   
   always @(posedge clk or negedge rst_n) begin
@@ -197,8 +204,9 @@ module e203_exu_disp(
     end
   end
   
-  // Check ALU-to-ALU RAW dependency
+  // Check data dependency with previous instruction
   // If the current instruction's source register matches the previous instruction's destination register
+  // Excludes x0 (zero register) since it's hardwired to zero
   wire alu_raw_dep_rs1 = prev_rdwen_r & disp_i_rs1en & (prev_rdidx_r == disp_i_rs1idx) & (|disp_i_rs1idx);
   wire alu_raw_dep_rs2 = prev_rdwen_r & disp_i_rs2en & (prev_rdidx_r == disp_i_rs2idx) & (|disp_i_rs2idx);
   wire alu_raw_dep = alu_raw_dep_rs1 | alu_raw_dep_rs2;
